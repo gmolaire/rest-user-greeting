@@ -9,6 +9,7 @@ import com.github.gumold.example.restusergreeting.client.dto.User;
 import com.github.gumold.example.restusergreeting.config.BasicRestUsersConfig;
 
 import lombok.extern.slf4j.Slf4j;
+import wiremock.org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 @Component
@@ -20,19 +21,20 @@ public class BasicRestUsersClient {
 	public User getUser(String username) {
 		RestTemplate restTemplate = new RestTemplate();
 
-		// Short circuit this if we have a null value
-		if (username == null) {
+		// Short circuit this if username is not defined
+		if (StringUtils.isBlank(username)) {
 			return null;
 		}
 
 		try {
-			return restTemplate.getForEntity(basicRestUsersConfig.getUrl(), User.class).getBody();
+			// TODO: Fix the URL so it gets generated properly
+			return restTemplate.getForEntity(basicRestUsersConfig.getUrl() + "/users/" + username, User.class)
+					.getBody();
 		} catch (HttpClientErrorException exception) {
-			log.warn("{} doesn't seem to either exist or not liked by the user holding service", username, exception);
+			log.warn("user {} doesn't seem to either exist", username, exception);
 		} catch (RuntimeException exception) {
 			// TODO: Manage the errors less vaguely
-			log.error("something not quite normal is happening. Is the user service up? If so, is the DTO up to date?",
-					exception);
+			log.error("something not quite normal is happening. Is the user service up?", exception);
 		}
 		return null;
 	}
